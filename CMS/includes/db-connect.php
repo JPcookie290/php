@@ -1,6 +1,7 @@
 <?php
 try {
-    $dsn = 'mysql:host=localhost:3306;dbname=cms_edvgraz';
+    // $dsn = 'mysql:host=localhost:3306;dbname=cms_edvgraz'; // Windows
+    $dsn = 'mysql:host=localhost:8889;dbname=cms_edvgraz'; // Mac
     $user_name = 'cms_edvgraz';
     $password = '';
     $options = [

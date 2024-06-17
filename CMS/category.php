@@ -2,34 +2,42 @@
 require_once 'includes/db-connect.php';
 require_once 'includes/functions.php';
 
-// SQL-Statement für die 6 neusten Artikel
-$sql = "SELECT a.id, a.title, a.summary, a.category_id, a.user_id,
-        c.name AS category,
-        CONCAT(u.forename, ' ', u.surname) AS author,
-        i.filename AS image_file,
-        i.alttext AS image_alt
-    FROM articles AS a
-    JOIN category AS c ON a.category_id = c.id
-    JOIN user AS u ON a.user_id = u.id
-    LEFT JOIN images AS i ON a.images_id = i.id
-    WHERE a.published = 1
-    ORDER BY a.id DESC
-    LIMIT 6;";
-$articles = pdo_execute( $pdo, $sql )->fetchAll( PDO::FETCH_ASSOC );
+$cat_id = filter_input( INPUT_GET, 'id', FILTER_VALIDATE_INT );
+if ( ! $cat_id ) {
+    include 'page_not_found.php';
+}
 
-// SQL Abfrage um alle Kategorien zu erhalten
+$sql = "SELECT id, name, description FROM category WHERE id = :id;";
+$category = pdo_execute( $pdo, $sql, [ 'id' => $cat_id ] )->fetchAll( PDO::FETCH_ASSOC )[0];
+if ( ! $category ) {
+    include 'page_not_found.php';
+}
+// var_dump($category);
+
+$sql = "SELECT a.id, a.title, a.summary, a.category_id, a.user_id, c.name as category,
+        CONCAT(u.forename, ' ', u.surname) as author, i.filename as image_file, i.alttext as image_alt
+        FROM articles as a
+        JOIN category as c ON a.category_id = c.id
+        JOIN user as u ON a.user_id = u.id
+        LEFT JOIN images as i ON a.images_id = i.id
+        WHERE a.published = 1 AND a.category_id = :id
+        ORDER BY a.id DESC;";
+
+$articles = pdo_execute( $pdo, $sql, [ 'id' => $cat_id ] )->fetchAll( PDO::FETCH_ASSOC );
+
 $sql = "SELECT id, name FROM category WHERE navigation = 1;";
-// Führt die SQL-ANweisung aus und speichert das Ergebnis in der Variable $navigation
 $navigation = pdo_execute( $pdo, $sql )->fetchAll();
-
-// Header-Variablen setzten
-$title = 'IT-News';
-$description = 'All about IT and New from Software Development and Hardware';
-$section = 1;
-// var_dump($articles);
+$title = $category['name'];
+$description = $category['description'];
+$section = $cat_id;
 ?>
 
 <?php include './includes/header.php'; ?>
+<aside class="flex justify-center items-center flex-col p-8">
+    <h1 class="text-4xl text-blue-500 mb-8"><?= e( $category['name'] ) ?></h1>
+    <p class="text-gray-500"><?= e( $category['description'] ) ?></p>
+</aside>
+<!-- ab hier gleich wie die index.php  -->
 <main class="flex flex-wrap p-8" id="content">
     <?php foreach ( $articles as $article ) : ?>
         <article class="w-full p-4 flex justify-between flex-col sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/6 mb-4">
