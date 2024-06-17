@@ -27,3 +27,9 @@ function format_date( string $string ) : string {
     $date = date_create_from_format( 'Y-m-d H:i:s', $string );
     return $date->format( 'd M. Y' );
 }
+
+function redirect( string $url, array $params = [], $status_code = 302 ) : void {
+    $query = $params ? '?' . http_build_query( $params ) : '';
+    header( "Location: $url$query", $status_code );
+    exit;
+}
